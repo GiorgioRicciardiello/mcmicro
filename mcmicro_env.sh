@@ -14,13 +14,14 @@ module load apptainer/1.2.5
 # Login nodes default to ulimit -u 256 (soft); hard limit is 512.
 ulimit -u 512 2>/dev/null || true
 
-# Container image cache — stored in projects (not scratch) for persistence
-export APPTAINER_CACHEDIR=/sc/arion/projects/vascbrain/giocrm/.apptainer_cache
-export SINGULARITY_CACHEDIR=/sc/arion/projects/vascbrain/giocrm/.apptainer_cache
+# Container image cache — scratch is fine (90-day purge; re-pull if evicted)
+# Use /sc/arion/scratch/riccig01/ — user-owned, large quota
+export APPTAINER_CACHEDIR=/sc/arion/scratch/riccig01/.apptainer_cache
+export SINGULARITY_CACHEDIR=/sc/arion/scratch/riccig01/.apptainer_cache
 
-# Nextflow work and home directories in projects
-export NXF_WORK=/sc/arion/projects/vascbrain/giocrm/nf-work
-export NXF_HOME=/sc/arion/projects/vascbrain/giocrm/.nextflow
+# Nextflow intermediate work files — scratch (temp, large, safe to lose)
+export NXF_WORK=/sc/arion/scratch/riccig01/nf-work
+export NXF_HOME=/sc/arion/scratch/riccig01/.nextflow
 
 mkdir -p "$APPTAINER_CACHEDIR" "$NXF_WORK" "$NXF_HOME"
 

@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-CACHE_DIR="${APPTAINER_CACHEDIR:-/sc/arion/projects/vascbrain/giocrm/.apptainer_cache}"
+CACHE_DIR="${APPTAINER_CACHEDIR:-/sc/arion/scratch/riccig01/.apptainer_cache}"
 mkdir -p "$CACHE_DIR"
 
 # Convert docker://org/name:tag -> org-name-tag.img  (Nextflow cache naming)
