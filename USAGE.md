@@ -360,16 +360,33 @@ module load nextflow    # this auto-loads Java 21
 java -version           # confirm: openjdk 21
 ```
 
-### Containers fail to pull
+### Containers fail to pull — "FATAL ERROR: Failed to create thread"
+
+Root cause: login nodes have `ulimit -u 256` (soft). `mksquashfs` (used by Apptainer
+to build SIF files) creates multiple threads and hits this limit.
+
+Fix: `mcmicro_env.sh` raises the soft limit to 512 (hard limit) automatically.
+If you sourced it and still see the error, check:
 
 ```bash
-# Confirm cache dir exists and is on scratch (not home)
-echo $APPTAINER_CACHEDIR   # must be /sc/arion/scratch/...
-ls -la $APPTAINER_CACHEDIR
-
-# Re-source env to set variables
-source mcmicro_env.sh
+ulimit -u        # should be 512 after sourcing mcmicro_env.sh
+ulimit -Hu       # hard limit — if < 512, contact HPC support
 ```
+
+If the limit is already at the hard cap, pre-pull containers manually:
+
+```bash
+# Pre-pull all containers (run once, takes ~20 min)
+source mcmicro_env.sh
+bash prepull_containers.sh
+```
+
+`prepull_containers.sh` pulls all images to `$APPTAINER_CACHEDIR` using the
+exact filename format Nextflow expects (`labsyspharm-name-tag.img`).
+
+**Do NOT run nextflow via `bsub`** — compute nodes have no internet access and
+cannot pull containers. Always run `nextflow run` from the login node; it
+submits individual pipeline steps to LSF automatically.
 
 ### "PENDING" jobs that never start
 
@@ -409,5 +426,5 @@ bash run_FNEL03.sh
 ---
 
 **Last Updated**: 2026-03-19
-**Platform**: Mount Sinai Minerva (LSF + Apptainer 1.3.6)
+**Platform**: Mount Sinai Minerva (LSF + Apptainer 1.2.5)
 **Pipeline**: MCMICRO (Nextflow 25.x)
