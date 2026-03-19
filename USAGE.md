@@ -126,10 +126,10 @@ cd mcmicro
 git remote add upstream https://github.com/labsyspharm/mcmicro.git
 git remote -v   # should show both origin (your fork) and upstream (labsyspharm)
 
-# Create Apptainer cache dir on scratch (not home — small quota)
-mkdir -p /sc/arion/scratch/giocrm/.apptainer_cache
-mkdir -p /sc/arion/scratch/giocrm/nf-work
-mkdir -p /sc/arion/scratch/giocrm/.nextflow
+# Create Apptainer cache and work dirs under projects (persistent, backed up)
+mkdir -p /sc/arion/projects/vascbrain/giocrm/.apptainer_cache
+mkdir -p /sc/arion/projects/vascbrain/giocrm/nf-work
+mkdir -p /sc/arion/projects/vascbrain/giocrm/.nextflow
 
 # Confirm your allocation name (update minerva.config if different from acc_vascbrain)
 bacct | head -5
@@ -157,8 +157,8 @@ MCMICRO environment loaded:
   java      : openjdk version "21.0.x" ...
   nextflow  : version 25.x.x
   apptainer : apptainer version 1.3.6
-  NXF_WORK  : /sc/arion/scratch/giocrm/nf-work
-  CACHE     : /sc/arion/scratch/giocrm/.apptainer_cache
+  NXF_WORK  : /sc/arion/projects/vascbrain/giocrm/nf-work
+  CACHE     : /sc/arion/projects/vascbrain/giocrm/.apptainer_cache
 ```
 
 ---
@@ -177,7 +177,7 @@ bash run_exemplar.sh
 - Downloads exemplar-001 (~600 MB) to `/sc/arion/projects/vascbrain/giocrm/OrionCadasil/test/`
 - Runs full MCMICRO pipeline with `-profile minerva,WSI`
 - Expected time: 15–30 min
-- All containers are cached to `/sc/arion/scratch/giocrm/.apptainer_cache` (reused in future runs)
+- All containers are cached to `/sc/arion/projects/vascbrain/giocrm/.apptainer_cache` (reused in future runs)
 
 Check result:
 ```bash
@@ -264,7 +264,7 @@ bjobs -l JOBID
 tail -f .nextflow.log
 
 # Job stdout/stderr (Nextflow writes these to the work directory)
-find /sc/arion/scratch/giocrm/nf-work -name ".command.log" | xargs tail -f
+find /sc/arion/projects/vascbrain/giocrm/nf-work -name ".command.log" | xargs tail -f
 
 # Cancel all your jobs
 bkill 0
@@ -389,7 +389,7 @@ tail -100 .nextflow.log | grep -i "error\|fail\|exception"
 # Find the failed process work directory
 grep "FAILED" .nextflow.log | tail -5
 # Navigate to that hash directory and inspect:
-cat /sc/arion/scratch/giocrm/nf-work/xx/yyyyyyyy/.command.err
+cat /sc/arion/projects/vascbrain/giocrm/nf-work/xx/yyyyyyyy/.command.err
 ```
 
 ### Out of memory for a specific step
@@ -401,7 +401,7 @@ Increase memory in `config/nf/minerva.config` for the failing process name (show
 ```bash
 # -resume requires the same work directory
 # Confirm NXF_WORK is set
-echo $NXF_WORK   # must be /sc/arion/scratch/giocrm/nf-work
+echo $NXF_WORK   # must be /sc/arion/projects/vascbrain/giocrm/nf-work
 source mcmicro_env.sh
 bash run_FNEL03.sh
 ```
