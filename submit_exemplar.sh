@@ -20,7 +20,7 @@ bsub \
   -J mcmicro_exemplar \
   -o "$LOG_DIR/exemplar_%J.stdout" \
   -e "$LOG_DIR/exemplar_%J.stderr" \
-  "cd $MCMICRO_DIR && source mcmicro_env.sh && bash run_exemplar.sh"
+  "cd $MCMICRO_DIR && source $MCMICRO_DIR/mcmicro_env.sh && bash $MCMICRO_DIR/run_exemplar.sh"
 
 echo "==> Exemplar job submitted. Monitor with:"
 echo "    wsl ssh minerva11 \"bjobs\""
