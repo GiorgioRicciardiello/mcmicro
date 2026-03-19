@@ -10,6 +10,10 @@ module purge
 module load nextflow    # also loads java/21
 module load apptainer/1.2.5
 
+# Raise process/thread limit so mksquashfs (used by apptainer) can create threads.
+# Login nodes default to ulimit -u 256 (soft); hard limit is 512.
+ulimit -u 512 2>/dev/null || true
+
 # Container image cache — stored in projects (not scratch) for persistence
 export APPTAINER_CACHEDIR=/sc/arion/projects/vascbrain/giocrm/.apptainer_cache
 export SINGULARITY_CACHEDIR=/sc/arion/projects/vascbrain/giocrm/.apptainer_cache
