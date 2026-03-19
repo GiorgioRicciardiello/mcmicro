@@ -8,7 +8,7 @@
 
 module purge
 module load nextflow    # also loads java/21
-module load apptainer
+module load apptainer/1.2.5
 
 # Container image cache — stored in projects (not scratch) for persistence
 export APPTAINER_CACHEDIR=/sc/arion/projects/vascbrain/giocrm/.apptainer_cache
