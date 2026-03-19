@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # prepull_containers.sh
-# Pre-pulls all MCMICRO container images to the Apptainer cache.
-# Must be run from the login node (needs internet).
+# Pre-pulls all MCMICRO container images using the exact filename format
+# that Nextflow expects: docker://<org>/<name>:<tag> -> <org>-<name>-<tag>.img
+#
+# Must be run from the login node (needs internet + ulimit 512).
 # Requires: source mcmicro_env.sh first (sets APPTAINER_CACHEDIR, ulimit 512)
 #
 # Usage:
@@ -12,6 +14,11 @@ set -euo pipefail
 
 CACHE_DIR="${APPTAINER_CACHEDIR:-/sc/arion/projects/vascbrain/giocrm/.apptainer_cache}"
 mkdir -p "$CACHE_DIR"
+
+# Convert docker://org/name:tag -> org-name-tag.img  (Nextflow cache naming)
+nxf_img_name() {
+  echo "$1" | sed 's|docker://||; s|/|-|g; s|:|-|g'
+}
 
 # All containers used by MCMICRO (from config/defaults.yml + nextflow.config)
 IMAGES=(
@@ -29,19 +36,18 @@ echo "    ulimit -u: $(ulimit -u)"
 echo ""
 
 for img in "${IMAGES[@]}"; do
-  # Derive expected .img filename (matches Nextflow's naming convention)
-  img_name=$(echo "$img" | sed 's|docker://||; s|/|-|g; s|:|-|').img
-  img_path="$CACHE_DIR/$img_name"
+  img_file="$(nxf_img_name "$img").img"
+  img_path="$CACHE_DIR/$img_file"
 
   if [ -f "$img_path" ]; then
-    echo "  [SKIP] $img  (already cached)"
+    echo "  [SKIP] $img_file  (already cached)"
   else
-    echo "  [PULL] $img ..."
-    apptainer pull --dir "$CACHE_DIR" "$img"
-    echo "  [DONE] $img"
+    echo "  [PULL] $img -> $img_file ..."
+    apptainer pull "$img_path" "$img"
+    echo "  [DONE] $img_file"
   fi
   echo ""
 done
 
 echo "==> All containers ready in $CACHE_DIR"
-ls -lh "$CACHE_DIR"/*.img 2>/dev/null || echo "(no .img files found)"
+ls -lh "$CACHE_DIR"/*.img 2>/dev/null || echo "(no .img files)"
