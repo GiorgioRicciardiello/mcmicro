@@ -13,6 +13,7 @@
 set -euo pipefail
 
 MCMICRO_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro"
+MARKERS="$MCMICRO_DIR/config/markers/orion_20ch_panel.csv"
 
 # Source OME-TIFF (do not move — we symlink below)
 IMAGE_SRC="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed/A/region_000/region_000.ome.tiff"
@@ -28,7 +29,7 @@ if [ ! -f "$IMAGE_SRC" ]; then
 fi
 
 # --- Create MCMICRO input structure ---
-# MCMICRO expects: <experiment>/raw/<image.ome.tiff>
+# MCMICRO expects: <experiment>/raw/<image.ome.tiff> and <experiment>/markers.csv
 RAW_DIR="$EXPERIMENT/raw"
 mkdir -p "$RAW_DIR"
 
@@ -39,6 +40,9 @@ if [ ! -L "$IMAGE_LINK" ]; then
 else
   echo "==> Symlink already exists: $IMAGE_LINK"
 fi
+
+# Deploy markers.csv (Orion 20-channel panel)
+cp -n "$MARKERS" "$EXPERIMENT/markers.csv" && echo "==> Deployed markers.csv" || echo "==> markers.csv already present"
 
 echo ""
 echo "==> Starting MCMICRO pipeline..."

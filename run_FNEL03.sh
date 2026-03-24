@@ -13,12 +13,13 @@
 set -euo pipefail
 
 MCMICRO_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro"
+MARKERS="$MCMICRO_DIR/config/markers/orion_20ch_panel.csv"
 
-# Input experiment folder — must contain raw/ subfolder with the image
+# Input experiment folder — MCMICRO outputs land here alongside raw/
 EXPERIMENT="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImages/FNEL03_CAD001_001"
 
-# The raw image (already on Minerva)
-IMAGE_SRC="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImages/FNEL03_CAD001_001/FNEL03_CAD001_001/FNEL03_CAD001_001_FNEL03_2026_V1_001703.ome.tiff"
+# The raw image — stored in the acquisition subdirectory
+IMAGE_SRC="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImages/FNEL03_CAD001_001/FNEL03_2026_V1_001703/FNEL03_CAD001_001_FNEL03_2026_V1_001703.ome.tiff"
 
 # --- Verify source image exists ---
 if [ ! -f "$IMAGE_SRC" ]; then
@@ -29,7 +30,7 @@ if [ ! -f "$IMAGE_SRC" ]; then
 fi
 
 # --- Create MCMICRO input structure ---
-# MCMICRO expects: <experiment>/raw/<image.ome.tiff>
+# MCMICRO expects: <experiment>/raw/<image.ome.tiff> and <experiment>/markers.csv
 RAW_DIR="$EXPERIMENT/raw"
 mkdir -p "$RAW_DIR"
 
@@ -41,6 +42,9 @@ if [ ! -L "$IMAGE_LINK" ]; then
 else
   echo "==> Symlink already exists: $IMAGE_LINK"
 fi
+
+# Deploy markers.csv (Orion 20-channel panel)
+cp -n "$MARKERS" "$EXPERIMENT/markers.csv" && echo "==> Deployed markers.csv" || echo "==> markers.csv already present"
 
 echo "==> Starting MCMICRO pipeline..."
 echo "    Experiment : $EXPERIMENT"
