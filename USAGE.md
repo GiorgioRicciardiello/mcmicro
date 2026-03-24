@@ -187,39 +187,49 @@ ls /sc/arion/projects/vascbrain/giocrm/OrionCadasil/test/exemplar-001/
 
 ---
 
-## Step 2a: Production run — A/region_000 (OME-TIFF)
+## Step 2a: Production run — all regions A–K (batch)
 
-The image is `region_000.ome.tiff` — OME-TIFF is the native format for MCMICRO, no
-conversion needed. **Do not move the file**; the script symlinks it into the MCMICRO
-input structure so the original data stays untouched.
+11 samples (A through K), each with the same structure:
 
-Actual file layout on Minerva:
 ```
-OrionImagesProcessed/A/region_000/
-├── region_000.ome.tiff        ← pipeline input (symlinked, not copied)
-├── region_000.h5
-├── region_000_coordinates.json
-└── region_000_thumbnail.png
+OrionImagesProcessed/
+├── A/
+│   ├── region_000/
+│   │   ├── region_000.ome.tiff   ← source image (symlinked, not copied)
+│   │   ├── region_000.h5
+│   │   ├── region_000_coordinates.json
+│   │   └── region_000_thumbnail.png
+│   └── region_000_run/           ← MCMICRO experiment dir (outputs here)
+│       ├── markers.csv           ← auto-deployed from config/markers/
+│       ├── raw/                  ← symlink to region_000.ome.tiff
+│       ├── registration/
+│       ├── segmentation/
+│       └── quantification/
+├── B/ … K/  (same structure)
 ```
 
+**Run all samples (A–K):**
 ```bash
 source mcmicro_env.sh
-bash run_region000.sh
+bash run_all_regions.sh
+```
+
+**Run a subset:**
+```bash
+REGIONS="B C D" bash run_all_regions.sh
 ```
 
 The script:
-1. Verifies `region_000.ome.tiff` exists at the source path
-2. Creates `region_000_run/raw/` and symlinks the image — no copy, no move
-3. Runs with `-profile minerva,WSI -resume`
+1. Loops A–K sequentially
+2. For each: fixes permissions, creates `region_000_run/raw/`, symlinks image, deploys `markers.csv`
+3. Runs `nextflow run` with `-profile minerva,WSI -resume`
+4. On failure: logs to `logs/batch/sample_<LETTER>.log`, continues to next sample
+5. Prints a summary of failed samples at the end with the exact re-run command
 
-Source image:
-```
-/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed/A/region_000/region_000.ome.tiff
-```
-
-Outputs land in:
-```
-/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed/A/region_000_run/
+**Run a single sample:**
+```bash
+source mcmicro_env.sh
+bash run_region000.sh   # sample A only
 ```
 
 ---

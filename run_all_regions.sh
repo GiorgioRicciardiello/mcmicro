@@ -13,11 +13,15 @@
 # To run a subset (e.g. B through D only):
 #   REGIONS="B C D" bash run_all_regions.sh
 
-set -euo pipefail
+set -uo pipefail   # no -e: a failed sample logs and continues rather than aborting
 
 MCMICRO_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro"
 BASE_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed"
 MARKERS="$MCMICRO_DIR/config/markers/orion_20ch_panel.csv"
+LOG_DIR="$MCMICRO_DIR/logs/batch"
+mkdir -p "$LOG_DIR"
+
+FAILED=""
 
 # Default: run all folders A-K. Override with: REGIONS="B C D" bash run_all_regions.sh
 REGIONS="${REGIONS:-A B C D E F G H I J K}"
@@ -62,18 +66,28 @@ for LETTER in $REGIONS; do
   # Deploy markers.csv
   cp -n "$MARKERS" "$EXPERIMENT/markers.csv" 2>/dev/null || true
 
-  # Run pipeline
-  echo "  ==> Starting nextflow for $LETTER ..."
-  nextflow run "$MCMICRO_DIR" \
-    --in "$EXPERIMENT" \
-    -profile minerva,WSI \
-    -w "$NXF_WORK" \
-    -resume
-
-  echo "  ==> $LETTER complete. Outputs in $EXPERIMENT/"
+  # Run pipeline — log per sample, continue on failure
+  SAMPLE_LOG="$LOG_DIR/sample_${LETTER}.log"
+  echo "  ==> Starting nextflow for $LETTER (log: $SAMPLE_LOG) ..."
+  if nextflow run "$MCMICRO_DIR" \
+      --in "$EXPERIMENT" \
+      -profile minerva,WSI \
+      -w "$NXF_WORK" \
+      -resume 2>&1 | tee "$SAMPLE_LOG"; then
+    echo "  ==> [OK] $LETTER complete. Outputs in $EXPERIMENT/"
+  else
+    echo "  ==> [FAIL] $LETTER failed — check $SAMPLE_LOG"
+    FAILED="$FAILED $LETTER"
+  fi
   echo ""
 done
 
 echo "============================================"
-echo " All samples done."
+echo " Batch complete."
+if [ -n "$FAILED" ]; then
+  echo " FAILED samples:$FAILED"
+  echo " Re-run with: REGIONS=\"${FAILED# }\" bash run_all_regions.sh"
+else
+  echo " All samples succeeded."
+fi
 echo "============================================"
