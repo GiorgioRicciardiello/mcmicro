@@ -3,17 +3,14 @@
 # Runs the MCMICRO pipeline sequentially on all region_000 images in
 # OrionImagesProcessed/ (folders A through K).
 #
-# Each folder must contain: <LETTER>/region_000/region_000.ome.tiff
-# Outputs land in:          <LETTER>/region_000_run/
-#
 # Usage:
 #   source mcmicro_env.sh
 #   bash run_all_regions.sh
 #
-# To run a subset (e.g. B through D only):
+# To run a subset:
 #   REGIONS="B C D" bash run_all_regions.sh
 
-set -uo pipefail   # no -e: a failed sample logs and continues rather than aborting
+set -uo pipefail
 
 MCMICRO_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro"
 BASE_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed"
