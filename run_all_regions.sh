@@ -1,18 +1,35 @@
 #!/usr/bin/env bash
+#===========================================================
+# LSF DIRECTIVES
+#===========================================================
+#BSUB -J mcmicro_batch_regions
+#BSUB -P acc_vascbrain
+#BSUB -q long
+#BSUB -W 72:00
+#BSUB -n 4
+#BSUB -R "rusage[mem=8000] span[hosts=1]"
+#BSUB -o /sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro/logs/batch_mcmicro_%J.out
+#BSUB -e /sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro/logs/batch_mcmicro_%J.err
+
 # run_all_regions.sh
 # Runs the MCMICRO pipeline sequentially on all region_000 images in
 # OrionImagesProcessed/ (folders A through K).
 #
-# Usage:
+# Usage (from login node):
+#   bsub < run_all_regions.sh
+#
+# Or run locally (without LSF submission):
 #   source mcmicro_env.sh
 #   bash run_all_regions.sh
 #
-# To run a subset:
-#   REGIONS="B C D" bash run_all_regions.sh
+# To run a subset via LSF:
+#   bsub -v REGIONS="B C D" < run_all_regions.sh
 
 set -uo pipefail
 
+# Source environment (CRITICAL for bsub jobs)
 MCMICRO_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro"
+source "$MCMICRO_DIR/mcmicro_env.sh"
 BASE_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed"
 MARKERS="$MCMICRO_DIR/config/markers/orion_20ch_panel.csv"
 LOG_DIR="$MCMICRO_DIR/logs/batch"
