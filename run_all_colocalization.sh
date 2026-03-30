@@ -52,7 +52,7 @@ echo "============================================"
 echo ""
 
 for LETTER in $REGIONS; do
-  SAMPLE_DIR="$BASE_DIR/$LETTER"
+  SAMPLE_DIR="$BASE_DIR/$LETTER/region_000_run"
 
   echo "----------------------------------------------"
   echo " Sample: $LETTER"
