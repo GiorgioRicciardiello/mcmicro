@@ -1,0 +1,94 @@
+##############################################################################
+# params.yml — MCMICRO parameters for per-cell multi-channel quantification
+#
+# Purpose: Run the full pipeline through quantification so that each cell
+#          receives intensity measurements across all 20 Orion channels.
+#          Output CSVs are used downstream for pairwise colocalization
+#          analysis (Pearson, Manders, Spearman).
+#
+# Usage:
+#   nextflow run <mcmicro_dir> --in <experiment_dir> --params params.yml \
+#     -profile minerva,WSI -w $NXF_WORK -resume
+##############################################################################
+
+workflow:
+  # Run the complete pipeline from registration through quantification.
+  # "downstream" is intentionally excluded — colocalization is computed
+  # by the separate colocalization_analysis.py script.
+  start-at: registration
+  stop-at: quantification
+
+  # Single whole-slide image (not a TMA)
+  tma: false
+
+  # Skip illumination correction (raw Orion OME-TIFFs are already flat-field
+  # corrected by the acquisition software; set to true if re-processing)
+  illumination: false
+
+  # No background subtraction by default; enable if autofluorescence removal
+  # is needed before colocalization metrics
+  background: false
+
+  # Segmentation: use unmicst (probability map) + s3seg (watershed).
+  # Channel 1 = Hoechst (nuclear stain) — 1-based index.
+  segmentation: unmicst
+  segmentation-channel: 1
+  segmentation-recyze: false
+
+  # QC files: inherit pipeline defaults
+  qc-files: inherit
+
+  # No visualization output needed for colocalization workflow
+  viz: false
+
+options:
+  # ashlar: 30 µm overlap stitching tolerance (default, works for Orion tiles)
+  ashlar: -m 30
+
+  # s3seg: nuclei diameter range tuned for brain tissue (5–25 µm nuclei).
+  # logSigma is in pixels; adjust if pixel size changes.
+  s3seg: --logSigma 3 20 --nucleiFilter IntPM --segmentCytoplasm ignoreCytoplasm
+
+  # mcquant: quantify against both cell and nuclei masks.
+  #   --masks        : glob patterns for mask files produced by s3seg/unmicst
+  #   --intensity_props: request mean AND median intensity per channel so
+  #                      colocalization_analysis.py can choose either metric.
+  #                      mean_intensity is always included by mcquant; we add
+  #                      median_intensity explicitly.
+  mcquant: >-
+    --masks cell*.tif nucleiMask.tif
+    --intensity_props median_intensity
+
+  # unmicst: use default human-nuclei DAPI model; channel 1 (Hoechst)
+  unmicst: --channel 1
+
+modules:
+  # Pin module versions to match the project's validated container set.
+  # These match config/defaults.yml to avoid accidental upgrades.
+  illumination:
+    name: basic
+    container: labsyspharm/basic-illumination
+    version: 1.4.0
+  registration:
+    name: ashlar
+    container: labsyspharm/ashlar
+    version: 1.19.0
+  segmentation:
+    - name: unmicst
+      container: labsyspharm/unmicst
+      version: 2.7.7
+      cmd: python /app/unmicstWrapper.py --stackOutput --outputPath .
+      input: ''
+      channel: --channel
+      idxbase: 1
+      watershed: 'yes'
+  watershed:
+    name: s3seg
+    container: labsyspharm/s3segmenter
+    version: 1.5.6
+    channel: --probMapChan
+    idxbase: 1
+  quantification:
+    name: mcquant
+    container: labsyspharm/quantification
+    version: 1.6.0
