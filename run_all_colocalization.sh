@@ -8,8 +8,8 @@
 #BSUB -W 72:00
 #BSUB -n 4
 #BSUB -R "rusage[mem=16000] span[hosts=1]"
-#BSUB -o logs/coloc_batch_%J.out
-#BSUB -e logs/coloc_batch_%J.err
+#BSUB -o /sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro/logs/coloc_batch_%J.out
+#BSUB -e /sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro/logs/coloc_batch_%J.err
 
 # run_all_colocalization.sh
 # Runs MCMICRO colocalization analysis sequentially on all samples A-K.
@@ -28,8 +28,8 @@
 
 set -uo pipefail
 
-# Resolve paths
-MCMICRO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Source environment (CRITICAL for bsub jobs)
+MCMICRO_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/ProjectCode/mcmicro"
 source "$MCMICRO_DIR/mcmicro_env.sh"
 
 BASE_DIR="/sc/arion/projects/vascbrain/giocrm/OrionCadasil/OrionImagesProcessed"
